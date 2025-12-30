@@ -2,7 +2,8 @@
 session_start();
 include 'koneksi.php';
 
-// Jika sudah login, tendang ke halaman masing-masing
+// 1. LOGIKA ANTI-LOOP
+// Jika sudah login, langsung arahkan ke dashboard yang sesuai agar tidak terjadi redirect berulang
 if (isset($_SESSION['login'])) {
     if ($_SESSION['level'] == 'admin') {
         header("Location: admin/index.php");
@@ -16,19 +17,19 @@ if (isset($_POST['login'])) {
     $nama_guru = mysqli_real_escape_string($conn, $_POST['nama_guru']);
     $password = $_POST['password'];
 
+    // Cari user berdasarkan nama
     $result = mysqli_query($conn, "SELECT * FROM guru WHERE nama_guru = '$nama_guru'");
 
-    // Cek username
     if (mysqli_num_rows($result) === 1) {
         $row = mysqli_fetch_assoc($result);
 
-        // Cek password
+        // 2. VERIFIKASI HASHING PASSWORD
         if (password_verify($password, $row['password'])) {
             // Set Session
             $_SESSION['login'] = true;
             $_SESSION['id_user'] = $row['id'];
             $_SESSION['nama'] = $row['nama_guru'];
-            $_SESSION['level'] = $row['level']; // Pastikan ada kolom 'level' di tabel
+            $_SESSION['level'] = $row['level'];
 
             // Redirect sesuai level
             if ($row['level'] == 'admin') {
