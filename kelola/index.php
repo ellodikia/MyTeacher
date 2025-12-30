@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['login']) || $_SESSION['level'] !== 'guru') {
+    header("Location: ../login.php");
+    exit;
+}
 include 'koneksi.php';
 
 $query_siswa = mysqli_query($conn, "SELECT COUNT(*) AS total FROM daftar_siswa");

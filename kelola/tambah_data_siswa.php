@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['login']) || $_SESSION['level'] !== 'guru') {
+    header("Location: ../login.php");
+    exit;
+}
 include 'koneksi.php';
 
 if(isset($_POST['simpan'])) {

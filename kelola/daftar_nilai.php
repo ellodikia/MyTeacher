@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['login']) || $_SESSION['level'] !== 'guru') {
+    header("Location: ../login.php");
+    exit;
+}
 include 'koneksi.php';
 
 $list_kelas = mysqli_query($conn, "SELECT DISTINCT kelas_jurusan FROM daftar_siswa ORDER BY kelas_jurusan");
