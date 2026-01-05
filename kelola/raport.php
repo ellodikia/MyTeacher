@@ -4,7 +4,7 @@ if (!isset($_SESSION['login']) || $_SESSION['level'] !== 'guru') {
     header("Location: ../login.php");
     exit;
 }
-include 'koneksi.php';
+include '../koneksi.php'; 
 
 $query = "SELECT 
             ds.id_siswa,
@@ -32,149 +32,170 @@ $daftar_kelas = array_keys($data_raport);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking Siswa - Raport</title>
+    <link rel="icon" type="image/jpeg" href="../img/logo.jpeg">
+    <title>Ranking Siswa - MYTEACHER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* GARIS SCROLL INDIKATOR (Sesuai Kursor di Foto) */
+        .scroll-container {
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        /* Garis abu-abu panjang sebagai dasar */
+        .scroll-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* Gaya Scrollbar untuk Chrome/Safari (Mobile & Desktop) */
+        .tab-wrapper::-webkit-scrollbar {
+            height: 3px; /* Ukuran garis scroll biru */
+        }
+        .tab-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .tab-wrapper::-webkit-scrollbar-thumb {
+            background: #2563eb; /* Warna biru sesuai kursor */
+            border-radius: 10px;
+        }
+
         .tab-active { 
             background-color: #2563eb !important; 
             color: white !important;
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Pastikan Sidebar tetap konsisten (Lebar 280px seperti standar dashboard) */
+        @media (min-width: 1024px) {
+            .sidebar-fixed { width: 280px; min-width: 280px; }
         }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-slate-900">
+<body class="bg-[#f8fafc] text-slate-900 flex flex-col lg:flex-row min-h-screen">
 
-<div class="flex min-h-screen">
-    <?php include 'sidebar.php'; ?>
+    <div class="sidebar-fixed h-full bg-slate-900">
+        <?php include 'sidebar.php'; ?>
+    </div>
 
-    <main class="flex-1 p-6 lg:p-10">
-        <div class="max-w-7xl mx-auto">
-            
-            <div class="mb-8">
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight">
-                    <i class="fas fa-trophy text-yellow-500 mr-2"></i> Peringkat Siswa
-                </h1>
-                <p class="text-slate-500 mt-2 font-medium">Pilih kelas di bawah ini untuk melihat daftar ranking.</p>
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        <header class="lg:hidden flex items-center justify-between bg-slate-900 text-white px-6 py-5 sticky top-0 z-30 shadow-md h-[72px]">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 bg-blue-600 rounded-md">
+                    <i class="fas fa-chalkboard-teacher text-sm"></i>
+                </div>
+                <span class="font-black tracking-tight">MY<span class="text-blue-500">TEACHER.</span></span>
             </div>
+            <button onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-xl">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+        </header>
 
-            <?php if (empty($data_raport)): ?>
-                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-slate-200 text-center">
-                    <img src="https://illustrations.popsy.co/slate/list-is-empty.svg" class="w-48 mx-auto mb-4" alt="Empty">
-                    <p class="text-slate-500 font-bold">Belum ada data nilai yang diinputkan.</p>
-                </div>
-            <?php else: ?>
+        <main class="p-6 md:p-10">
+            <div class="max-w-7xl mx-auto">
                 
-                <div class="flex flex-wrap gap-2 mb-8 bg-white p-3 rounded-3xl border border-slate-200 shadow-sm">
-                    <?php foreach ($daftar_kelas as $index => $kelas): ?>
-                        <button onclick="showTab('<?= str_replace(' ', '-', $kelas) ?>', this)" 
-                                class="tab-btn px-6 py-3 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all uppercase tracking-wider <?= $index === 0 ? 'tab-active' : '' ?>">
-                            <?= htmlspecialchars($kelas) ?>
-                        </button>
+                <div class="mb-8">
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <i class="fas fa-trophy text-yellow-500"></i> Peringkat Siswa
+                    </h1>
+                </div>
+
+                <?php if (!empty($data_raport)): ?>
+                    <div class="mb-10">
+                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Pilih Kelas</p>
+                        
+                        <div class="scroll-container">
+                            <div class="tab-wrapper flex items-center gap-2 overflow-x-auto pb-4 scroll-smooth">
+                                <?php foreach ($daftar_kelas as $index => $kelas): ?>
+                                    <button onclick="showTab('<?= str_replace(' ', '-', $kelas) ?>', this)" 
+                                            class="tab-btn whitespace-nowrap px-6 py-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 transition-all <?= $index === 0 ? 'tab-active' : '' ?>">
+                                        <?= htmlspecialchars($kelas) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php foreach ($data_raport as $kelas => $daftar_siswa): ?>
+                    <div id="content-<?= str_replace(' ', '-', $kelas) ?>" class="tab-content <?= array_search($kelas, $daftar_kelas) === 0 ? '' : 'hidden' ?>">
+                        
+                        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left min-w-[700px]">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-100 uppercase text-[10px] font-black text-slate-400 tracking-widest">
+                                            <th class="px-8 py-5 text-center w-24">Rank</th>
+                                            <th class="px-6 py-5">Identitas Siswa</th>
+                                            <th class="px-6 py-5 text-center">Rata-rata</th>
+                                            <th class="px-6 py-5 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <?php 
+                                        $rank = 1;
+                                        foreach ($daftar_siswa as $s): 
+                                            $medalColor = $rank == 1 ? 'text-yellow-500' : ($rank == 2 ? 'text-slate-400' : ($rank == 3 ? 'text-orange-400' : 'text-slate-200'));
+                                        ?>
+                                        <tr class="hover:bg-slate-50/50 transition-all">
+                                            <td class="px-8 py-6 text-center">
+                                                <div class="flex flex-col items-center">
+                                                    <i class="fas fa-medal <?= $medalColor ?> text-3xl"></i>
+                                                    <span class="text-[9px] font-black text-slate-400 mt-1 uppercase">#<?= $rank ?></span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-6">
+                                                <div class="flex flex-col">
+                                                    <span class="font-bold text-slate-800 text-base"><?= htmlspecialchars($s['nama_siswa']) ?></span>
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase">NISN: <?= $s['nisn'] ?></span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-6 text-center">
+                                                <div class="inline-block px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-black text-xl border border-blue-100">
+                                                    <?= number_format($s['rata_rata_umum'], 1) ?>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-6 text-center">
+                                                <?php if($s['rata_rata_umum'] >= 75): ?>
+                                                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Kompeten</span>
+                                                <?php else: ?>
+                                                    <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Remidi</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                        <?php $rank++; endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                     <?php endforeach; ?>
-                </div>
+                <?php endif; ?>
+            </div>
+        </main>
+    </div>
 
-                <?php foreach ($data_raport as $kelas => $daftar_siswa): ?>
-                <div id="content-<?= str_replace(' ', '-', $kelas) ?>" 
-                     class="tab-content animate-in fade-in slide-in-from-bottom-4 duration-500 <?= array_search($kelas, $daftar_kelas) === 0 ? '' : 'hidden' ?>">
-                    
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="h-10 w-1.5 bg-blue-600 rounded-full"></div>
-                        <h2 class="text-2xl font-extrabold text-slate-800 italic uppercase">Daftar Rangking <?= htmlspecialchars($kelas) ?></h2>
-                    </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+        }
 
-                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-100">
-                                    <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-widest text-center w-24">Rank</th>
-                                    <th class="px-6 py-5 text-[10px] font-black uppercase text-slate-400 tracking-widest">Identitas Siswa</th>
-                                    <th class="px-6 py-5 text-[10px] font-black uppercase text-slate-400 tracking-widest text-center">Rata-rata Nilai</th>
-                                    <th class="px-6 py-5 text-[10px] font-black uppercase text-slate-400 tracking-widest text-center">Status Akademik</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <?php 
-                                $rank = 1;
-                                foreach ($daftar_siswa as $s): 
-                                    $bgColor = '';
-                                    $icon = '';
-                                    if($rank == 1) { $bgColor = 'bg-yellow-50/30'; $icon = 'text-yellow-500'; }
-                                    elseif($rank == 2) { $bgColor = 'bg-slate-50/50'; $icon = 'text-slate-400'; }
-                                    elseif($rank == 3) { $bgColor = 'bg-orange-50/30'; $icon = 'text-orange-400'; }
-                                ?>
-                                <tr class="hover:bg-slate-50/80 transition-colors <?= $bgColor ?>">
-                                    <td class="px-8 py-6 text-center">
-                                        <?php if($rank <= 3): ?>
-                                            <div class="flex flex-col items-center">
-                                                <i class="fas fa-medal <?= $icon ?> text-3xl drop-shadow-sm"></i>
-                                                <span class="text-[10px] font-black mt-1 text-slate-400">JUARA <?= $rank ?></span>
-                                            </div>
-                                        <?php else: ?>
-                                            <span class="font-black text-slate-300 text-xl">#<?= $rank ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="px-6 py-6">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-black text-lg">
-                                                <?= substr($s['nama_siswa'], 0, 1) ?>
-                                            </div>
-                                            <div class="flex flex-col">
-                                                <span class="font-bold text-slate-800 text-lg leading-tight"><?= htmlspecialchars($s['nama_siswa']) ?></span>
-                                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">NISN: <?= $s['nisn'] ?></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-6 text-center">
-                                        <div class="inline-block px-5 py-2 bg-slate-900 text-white rounded-2xl font-black text-2xl shadow-lg shadow-slate-200">
-                                            <?= number_format($s['rata_rata_umum'], 1) ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-6 text-center">
-                                        <?php if($s['rata_rata_umum'] >= 85): ?>
-                                            <span class="px-4 py-2 bg-emerald-100 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-200">Sangat Baik</span>
-                                        <?php elseif($s['rata_rata_umum'] >= 75): ?>
-                                            <span class="px-4 py-2 bg-blue-100 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-200">Cukup</span>
-                                        <?php else: ?>
-                                            <span class="px-4 py-2 bg-rose-100 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-200">Perlu Bimbingan</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                                <?php 
-                                $rank++;
-                                endforeach; 
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-
-            <?php endif; ?>
-
-        </div>
-    </main>
-</div>
-
-<script>
-    function showTab(kelasId, btn) {
-        // Sembunyikan semua konten tabel
-        const contents = document.querySelectorAll('.tab-content');
-        contents.forEach(content => content.classList.add('hidden'));
-
-        // Hapus class active dari semua tombol
-        const buttons = document.querySelectorAll('.tab-btn');
-        buttons.forEach(button => button.classList.remove('tab-active'));
-
-        // Tampilkan konten yang dipilih
-        document.getElementById('content-' + kelasId).classList.remove('hidden');
-
-        // Tambahkan class active ke tombol yang diklik
-        btn.classList.add('tab-active');
-    }
-</script>
-
+        function showTab(kelasId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('content-' + kelasId).classList.remove('hidden');
+            btn.classList.add('tab-active');
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    </script>
 </body>
 </html>

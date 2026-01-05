@@ -1,5 +1,4 @@
 <?php
-// 1. Konfigurasi Database
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -12,26 +11,21 @@ if (!$koneksi) {
 
 $pesan = "";
 
-// 2. Logika Pemrosesan Form
 if (isset($_POST['submit'])) {
-    // PERBAIKAN: Nama fungsi yang benar adalah mysqli_real_escape_string
     $nama_guru = mysqli_real_escape_string($koneksi, $_POST['nama_guru']);
     $level     = $_POST['level'];
     
-    // Fitur Hashing Password
     $password_input = $_POST['password'];
     $password_hashed = password_hash($password_input, PASSWORD_DEFAULT);
     
-    // Proses Foto
     $foto_nama = $_FILES['foto']['name'];
     $foto_tmp  = $_FILES['foto']['tmp_name'];
-    $target_dir = "uploads/";
+    $target_dir = "uploads/guru";
 
     if (!is_dir($target_dir)) {
         mkdir($target_dir, 0777, true);
     }
 
-    // Pindahkan file ke folder uploads
     if (move_uploaded_file($foto_tmp, $target_dir . $foto_nama)) {
         $query = "INSERT INTO guru (nama_guru, password, level, foto) 
                   VALUES ('$nama_guru', '$password_hashed', '$level', '$foto_nama')";

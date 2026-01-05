@@ -4,7 +4,7 @@ if (!isset($_SESSION['login']) || $_SESSION['level'] !== 'guru') {
     header("Location: ../login.php");
     exit;
 }
-include 'koneksi.php';
+include '../koneksi.php';
 
 $id = $_GET['id'];
 
@@ -39,8 +39,6 @@ if(isset($_POST['update'])) {
 
     if(mysqli_query($conn, $sql_update)) {
         header("Location: daftar_nilai.php");
-    } else {
-        echo "Error updating record: " . mysqli_error($conn);
     }
 }
 ?>
@@ -49,110 +47,130 @@ if(isset($_POST['update'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Nilai Siswa</title>
+    <link rel="icon" type="image/jpeg" href="../img/logo.jpeg">
+    <title>Edit Nilai - MYTEACHER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Memastikan input angka tidak memiliki spinner di beberapa browser */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-[#f8fafc] flex">
+<body class="bg-[#f8fafc] flex flex-col lg:flex-row min-h-screen">
 
     <?php include 'sidebar.php'; ?>
 
-    <main class="flex-1 min-w-0 p-6 lg:p-10">
-        <div class="max-w-4xl mx-auto">
-            
-            <div class="mb-6">
-                <a href="daftar_nilai.php" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors mb-4">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Daftar Nilai
-                </a>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                    <i class="fas fa-edit text-blue-600"></i> Edit Data Nilai
-                </h1>
-                <p class="text-slate-500 mt-1 font-medium">Mengubah data milik: <span class="text-slate-900 font-bold"><?= htmlspecialchars($d['nama_siswa']) ?></span></p>
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="lg:hidden flex items-center justify-between bg-slate-900 text-white px-5 py-4 sticky top-0 z-30 shadow-md">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 bg-blue-600 rounded-md">
+                    <i class="fas fa-chalkboard-teacher text-sm"></i>
+                </div>
+                <span class="font-black tracking-tight">MY<span class="text-blue-500">TEACHER.</span></span>
             </div>
+            <button onclick="toggleSidebar()" class="w-9 h-9 flex items-center justify-center bg-slate-800 rounded-lg">
+                <i class="fas fa-bars text-sm"></i>
+            </button>
+        </header>
 
-            <form action="" method="post" class="space-y-6">
-                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nama Lengkap</label>
-                            <input type="text" value="<?= htmlspecialchars($d['nama_siswa']) ?>" disabled 
-                                   class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-400 cursor-not-allowed">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Mata Pelajaran</label>
-                            <input type="text" name="mata_pelajaran" value="<?= htmlspecialchars($d['mata_pelajaran']) ?>" required
-                                   class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold text-slate-700">
-                        </div>
-                    </div>
+        <main class="p-4 md:p-8 lg:p-10">
+            <div class="max-w-4xl mx-auto">
+                
+                <div class="mb-6">
+                    <a href="daftar_nilai.php" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 mb-4">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
+                    <h1 class="text-xl md:text-3xl font-black text-slate-900 tracking-tight">Edit Nilai</h1>
+                    <p class="text-slate-500 text-xs md:text-sm font-medium mt-1 uppercase tracking-wider">Siswa: <?= htmlspecialchars($d['nama_siswa']) ?></p>
                 </div>
 
-                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">
-                            <i class="fas fa-calculator text-emerald-500 mr-2"></i> Kalkulator Harian
-                        </h3>
-                        <button type="button" onclick="tambahTugas()" class="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black hover:bg-emerald-100 transition-colors">
-                            <i class="fas fa-plus"></i> Tambah Skor
+                <form action="" method="post" class="space-y-4 md:space-y-6">
+                    <div class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-slate-200">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-[9px] font-black uppercase text-slate-400 tracking-widest">Nama Siswa</label>
+                                <input type="text" value="<?= htmlspecialchars($d['nama_siswa']) ?>" disabled 
+                                       class="w-full px-3 py-3 md:px-5 md:py-4 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl font-bold text-slate-400 text-xs md:text-base">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[9px] font-black uppercase text-slate-400 tracking-widest">Mapel</label>
+                                <input type="text" name="mata_pelajaran" value="<?= htmlspecialchars($d['mata_pelajaran']) ?>" required
+                                       class="w-full px-3 py-3 md:px-5 md:py-4 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl font-bold text-slate-700 text-xs md:text-base outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-4 md:mb-6">
+                            <h3 class="font-black text-slate-800 uppercase text-[10px] tracking-widest flex items-center gap-2">
+                                <i class="fas fa-calculator text-emerald-500"></i> Harian
+                            </h3>
+                            <button type="button" onclick="tambahTugas()" class="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black hover:bg-emerald-100 transition-all">
+                                + Skor
+                            </button>
+                        </div>
+
+                        <div id="list-input-tugas" class="grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 mb-4 md:mb-6">
+                            </div>
+
+                        <div class="bg-slate-900 rounded-xl md:rounded-[2rem] p-4 md:p-6 flex items-center justify-between text-white">
+                            <span class="text-[9px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest">Rata-Rata</span>
+                            <input type="number" name="nilai_harian" id="hasil_harian" value="<?= $d['nilai_harian'] ?>" step="0.1" readonly required 
+                                   class="bg-transparent text-2xl md:text-4xl font-black w-24 text-right outline-none text-emerald-400">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 md:gap-6">
+                        <div class="bg-white p-3 md:p-6 rounded-[1.2rem] md:rounded-[2rem] shadow-sm border border-slate-200 text-center">
+                            <label class="block text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">UH</label>
+                            <input type="number" name="nilai_uh" value="<?= $d['nilai_uh'] ?>" step="0.1" required 
+                                   class="w-full bg-transparent text-lg md:text-2xl font-black text-slate-700 outline-none">
+                        </div>
+                        <div class="bg-white p-3 md:p-6 rounded-[1.2rem] md:rounded-[2rem] shadow-sm border border-slate-200 text-center">
+                            <label class="block text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">UTS</label>
+                            <input type="number" name="nilai_uts" value="<?= $d['nilai_uts'] ?>" step="0.1" required 
+                                   class="w-full bg-transparent text-lg md:text-2xl font-black text-slate-700 outline-none">
+                        </div>
+                        <div class="bg-white p-3 md:p-6 rounded-[1.2rem] md:rounded-[2rem] shadow-sm border border-slate-200 text-center">
+                            <label class="block text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">UAS</label>
+                            <input type="number" name="nilai_uas" value="<?= $d['nilai_uas'] ?>" step="0.1" required 
+                                   class="w-full bg-transparent text-lg md:text-2xl font-black text-slate-700 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <a href="daftar_nilai.php" class="flex-1 py-3 md:py-5 bg-white text-slate-400 border border-slate-200 rounded-xl md:rounded-[2rem] font-bold text-[10px] md:text-xs uppercase tracking-widest flex items-center justify-center">
+                            Batal
+                        </a>
+                        <button type="submit" name="update" class="flex-[2] py-3 md:py-5 bg-blue-600 text-white rounded-xl md:rounded-[2rem] font-black text-[10px] md:text-sm shadow-lg shadow-blue-100 uppercase tracking-widest flex items-center justify-center gap-2">
+                            <i class="fas fa-check-circle"></i> Simpan
                         </button>
                     </div>
+                </form>
+            </div>
+        </main>
+    </div>
 
-                    <div id="list-input-tugas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-6">
-                        </div>
-
-                    <div class="bg-slate-900 rounded-2xl p-6 flex items-center justify-between text-white shadow-xl shadow-slate-200">
-                        <div>
-                            <span class="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Hasil Rata-Rata Harian</span>
-                        </div>
-                        <input type="number" name="nilai_harian" id="hasil_harian" value="<?= $d['nilai_harian'] ?>" step="0.1" readonly required 
-                               class="bg-transparent text-4xl font-black w-32 text-right outline-none text-emerald-400">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
-                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 ml-1 text-center">Nilai UH</label>
-                        <input type="number" name="nilai_uh" value="<?= $d['nilai_uh'] ?>" step="0.1" required 
-                               class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-2xl font-black text-center text-slate-700 focus:ring-4 focus:ring-blue-500/10 outline-none">
-                    </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
-                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 ml-1 text-center">Nilai UTS</label>
-                        <input type="number" name="nilai_uts" value="<?= $d['nilai_uts'] ?>" step="0.1" required 
-                               class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-2xl font-black text-center text-slate-700 focus:ring-4 focus:ring-blue-500/10 outline-none">
-                    </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
-                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 ml-1 text-center">Nilai UAS</label>
-                        <input type="number" name="nilai_uas" value="<?= $d['nilai_uas'] ?>" step="0.1" required 
-                               class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-2xl font-black text-center text-slate-700 focus:ring-4 focus:ring-blue-500/10 outline-none">
-                    </div>
-                </div>
-
-                <div class="flex flex-col md:flex-row gap-4 pt-4">
-                    <button type="submit" name="update" class="flex-1 py-5 bg-blue-600 text-white rounded-3xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-[0.98] uppercase tracking-widest flex items-center justify-center gap-3">
-                        <i class="fas fa-save"></i> Simpan Perubahan
-                    </button>
-                    <a href="daftar_nilai.php" class="px-10 py-5 bg-white text-slate-500 border border-slate-200 rounded-3xl font-bold hover:bg-slate-50 transition-colors uppercase text-sm flex items-center justify-center">
-                        Batal
-                    </a>
-                </div>
-            </form>
-        </div>
-    </main>
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm"></div>
 
 <script>
-// (Script JavaScript tetap sama untuk fungsionalitas kalkulator)
+function toggleSidebar() {
+    const sidebar = document.getElementById('mainSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(sidebar) sidebar.classList.toggle('-translate-x-full');
+    if(overlay) overlay.classList.toggle('hidden');
+}
+
 function tambahTugas() {
     const container = document.getElementById('list-input-tugas');
     const div = document.createElement('div');
-    div.className = 'relative group item-tugas';
+    div.className = 'relative item-tugas';
     div.innerHTML = `
-        <input type="number" step="0.1" min="0" max="100" placeholder="0.0" oninput="hitungRataRata()"
-               class="input-skor w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:ring-2 focus:ring-emerald-400 outline-none">
-        <button type="button" onclick="hapusTugas(this)" class="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-[10px] flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+        <input type="number" step="0.1" min="0" max="100" placeholder="0" oninput="hitungRataRata()"
+               class="input-skor w-full px-2 py-3 bg-slate-50 border border-slate-100 rounded-lg text-center font-bold text-slate-700 text-xs outline-none focus:border-emerald-400">
+        <button type="button" onclick="hapusTugas(this)" class="absolute -top-1 -right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[8px] flex items-center justify-center">
             <i class="fas fa-times"></i>
         </button>
     `;
