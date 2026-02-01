@@ -1,4 +1,4 @@
-🎓 MYTEACHER - Dashboard Manajemen Guru & Siswa
+## 🎓 MYTEACHER - Dashboard Manajemen Guru & Siswa
 
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892bf.svg)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
